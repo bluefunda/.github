@@ -25,11 +25,15 @@ All repositories tagged with [`abaper`](https://github.com/topics/abaper) are pa
 
 **BlueFunda AI** brings intelligent automation to SAP — context-aware, no-code agents that automate provisioning, generate OData services from plain-text prompts, answer data questions in natural language, and orchestrate S/4HANA across clouds. BlueFunda AI also powers the AI features in ABAPer.
 
+### Getting Started
+
+- **Try it in the browser** — [bluefunda.com/login](https://bluefunda.com/login)
+- **Use the CLI** — `go install github.com/bluefunda/cai-cli/cmd/ai@latest`
+- **Learn more** — [bluefunda.com/bluefunda-ai](https://bluefunda.com/bluefunda-ai/)
+
 | Repository | Description |
 |------------|-------------|
 | [cai-cli](https://github.com/bluefunda/cai-cli) | Command line interface for BlueFunda AI (`ai` binary) |
-
-- **Product page** — [bluefunda.com/bluefunda-ai](https://bluefunda.com/bluefunda-ai/)
 
 ## Other Projects
 
