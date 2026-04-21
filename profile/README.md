@@ -8,7 +8,6 @@ We build developer tools and AI agents for the SAP ecosystem.
 
 | Repository | Description |
 |------------|-------------|
-| [abaper](https://github.com/bluefunda/abaper) | Core ABAPer backend service |
 | [abaper-editor](https://github.com/bluefunda/abaper-editor) | Browser-based ABAP IDE powered by Monaco Editor |
 | [abaper-vscode](https://github.com/bluefunda/abaper-vscode) | AI-powered ABAP development assistant for VS Code |
 | [abaper-cli](https://github.com/bluefunda/abaper-cli) | Command line interface for ABAPer |
