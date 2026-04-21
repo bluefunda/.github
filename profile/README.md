@@ -13,13 +13,25 @@ We build developer tools for the SAP ecosystem.
 | [abaper-vscode](https://github.com/bluefunda/abaper-vscode) | AI-powered ABAP development assistant for VS Code |
 | [abaper-cli](https://github.com/bluefunda/abaper-cli) | Command line interface for ABAPer |
 | [abaper-mcp](https://github.com/bluefunda/abaper-mcp) | MCP server for AI agent integration |
-| [abaper-gw](https://github.com/bluefunda/abaper-gw) | KrakenD API gateway |
-| [abaper-bff](https://github.com/bluefunda/abaper-bff) | Backend-for-frontend aggregation layer |
 
 ### Getting Started
 
 - **Try it in the browser** — [abaper.bluefunda.com](https://abaper.bluefunda.com)
 - **Install the VS Code extension** — [Marketplace](https://marketplace.visualstudio.com/items?itemName=bluefunda.abaper)
-- **Use the CLI** — `go install github.com/bluefunda/abaper-cli/cmd/abaper@latest`
+- **Use the CLI** — `brew tap bluefunda/tap && brew install abaper`
 
 All repositories tagged with [`abaper`](https://github.com/topics/abaper) are part of this ecosystem.
+
+## Other Projects
+
+| Repository | Description |
+|------------|-------------|
+| [abap-odata-test](https://github.com/bluefunda/abap-odata-test) | ABAP library for OData endpoint testing and assertions |
+| [xpro-free](https://github.com/bluefunda/xpro-free) | XPro Free Edition — SAP extension platform |
+| [homebrew-tap](https://github.com/bluefunda/homebrew-tap) | Homebrew formulae for BlueFunda CLIs |
+
+## Links
+
+- 🌐 [bluefunda.com](https://bluefunda.com)
+- 📦 [abaper.bluefunda.com](https://abaper.bluefunda.com)
+- 🐦 [@bluefunda](https://twitter.com/bluefunda)
