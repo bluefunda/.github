@@ -1,0 +1,2 @@
+# Global owner — applies to every file in every repo that lacks its own CODEOWNERS.
+* @bluefunda/maintainers

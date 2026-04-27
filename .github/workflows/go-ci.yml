@@ -1,0 +1,142 @@
+name: Go CI
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        description: 'Go version to use (defaults to version in go.mod)'
+        required: false
+        type: string
+        default: ''
+      private-modules:
+        description: 'Set true when the repo imports private github.com/bluefunda/* modules. Enables GOPRIVATE and git credential setup.'
+        required: false
+        type: boolean
+        default: false
+      build-command:
+        required: false
+        type: string
+        default: 'go build ./...'
+      test-command:
+        required: false
+        type: string
+        default: 'go test -race ./...'
+      golangci-lint-version:
+        required: false
+        type: string
+        default: 'v2.9.0'
+      run-codecov:
+        required: false
+        type: boolean
+        default: false
+      run-protobuf:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      GH_PAT:
+        description: 'Required only when private-modules is true.'
+        required: false
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: ${{ inputs.private-modules && 'github.com/bluefunda/*' || '' }}
+    steps:
+      - name: Configure Git for private modules
+        if: inputs.private-modules
+        run: git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version || '' }}
+          go-version-file: ${{ inputs.go-version == '' && 'go.mod' || '' }}
+
+      - name: Install protoc tools
+        if: inputs.run-protobuf
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+      - name: Generate proto files
+        if: inputs.run-protobuf
+        run: make proto
+
+      - run: go mod download
+      - run: ${{ inputs.test-command }}
+
+      - name: Upload coverage
+        if: inputs.run-codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.txt
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: ${{ inputs.private-modules && 'github.com/bluefunda/*' || '' }}
+    steps:
+      - name: Configure Git for private modules
+        if: inputs.private-modules
+        run: git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version || '' }}
+          go-version-file: ${{ inputs.go-version == '' && 'go.mod' || '' }}
+
+      - name: Install protoc tools
+        if: inputs.run-protobuf
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+      - name: Generate proto files
+        if: inputs.run-protobuf
+        run: make proto
+
+      - run: go mod download
+      - run: ${{ inputs.build-command }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: ${{ inputs.private-modules && 'github.com/bluefunda/*' || '' }}
+    steps:
+      - name: Configure Git for private modules
+        if: inputs.private-modules
+        run: git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version || '' }}
+          go-version-file: ${{ inputs.go-version == '' && 'go.mod' || '' }}
+
+      - name: Install protoc tools
+        if: inputs.run-protobuf
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+      - name: Generate proto files
+        if: inputs.run-protobuf
+        run: make proto
+
+      - run: go mod download
+
+      - uses: golangci/golangci-lint-action@v7
+        with:
+          version: ${{ inputs.golangci-lint-version }}

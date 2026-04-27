@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Go modules — applies to any repo that adopts this org default
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - infrastructure
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - infrastructure

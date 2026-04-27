@@ -1,0 +1,63 @@
+name: Go Binary Release
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Release tag to build'
+        required: true
+        type: string
+      goreleaser-version:
+        description: 'GoReleaser version'
+        required: false
+        type: string
+        default: '~> v2'
+      goreleaser-args:
+        description: 'GoReleaser arguments'
+        required: false
+        type: string
+        default: 'release --clean'
+      test-command:
+        description: 'Test command to run before release'
+        required: false
+        type: string
+        default: 'go test -race -count=1 ./...'
+    secrets:
+      GH_PAT:
+        required: true
+      HOMEBREW_TAP_TOKEN:
+        required: false
+
+env:
+  GOPRIVATE: github.com/bluefunda/*
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Configure Git for private modules
+        run: git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run tests
+        run: ${{ inputs.test-command }}
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: ${{ inputs.goreleaser-version }}
+          args: ${{ inputs.goreleaser-args }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
