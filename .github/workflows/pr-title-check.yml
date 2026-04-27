@@ -1,0 +1,46 @@
+name: PR Title Check
+
+on:
+  workflow_call:
+    inputs:
+      extra-types:
+        description: 'Space-separated additional conventional commit types to allow'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  pr-title:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Validate PR title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          EXTRA: ${{ inputs.extra-types }}
+        run: |
+          # Base types required by release-please + release-foundry label mapping.
+          BASE_TYPES="feat fix perf security chore refactor docs ci test style infra"
+          ALL_TYPES="$BASE_TYPES $EXTRA"
+
+          # Build regex: ^(type1|type2|...)[(!|(scope)]:
+          PATTERN="^($(echo $ALL_TYPES | tr ' ' '|'))(\([^)]+\))?(!)?: .+"
+
+          echo "PR title: $TITLE"
+          echo "Allowed types: $ALL_TYPES"
+
+          if echo "$TITLE" | grep -qP "$PATTERN"; then
+            echo "✅ PR title matches conventional commit format"
+          else
+            echo "❌ PR title does not match conventional commit format."
+            echo ""
+            echo "Expected format: <type>[(scope)][!]: <description>"
+            echo "Allowed types:   $ALL_TYPES"
+            echo ""
+            echo "Examples:"
+            echo "  feat: add XSUAA token caching"
+            echo "  fix(connectivity): handle dial timeout"
+            echo "  feat!: redesign destination API (breaking change)"
+            exit 1
+          fi
