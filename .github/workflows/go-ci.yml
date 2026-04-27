@@ -137,6 +137,6 @@ jobs:
 
       - run: go mod download
 
-      - uses: golangci/golangci-lint-action@v7
+      - uses: golangci/golangci-lint-action@v9
         with:
           version: ${{ inputs.golangci-lint-version }}
