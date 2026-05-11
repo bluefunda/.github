@@ -34,11 +34,13 @@ All repositories tagged with [`abaper`](https://github.com/topics/abaper) are pa
 | Repository | Description |
 |------------|-------------|
 | [cai-cli](https://github.com/bluefunda/cai-cli) | Command line interface for BlueFunda AI (`ai` binary) |
+| [llm-router](https://github.com/bluefunda/llm-router) | LLM router for model selection and request routing |
 
 ## Other Projects
 
 | Repository | Description |
 |------------|-------------|
+| [btp-go](https://github.com/bluefunda/btp-go) | stdlib-only Go libraries for SAP BTP — XSUAA, Connectivity, Destination, service bindings |
 | [abap-odata-test](https://github.com/bluefunda/abap-odata-test) | ABAP library for OData endpoint testing and assertions |
 | [xpro-free](https://github.com/bluefunda/xpro-free) | XPro Free Edition — XML processing toolchain |
 | [homebrew-tap](https://github.com/bluefunda/homebrew-tap) | Homebrew formulae for BlueFunda CLIs |
