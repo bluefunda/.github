@@ -34,7 +34,7 @@ All repositories tagged with [`abaper`](https://github.com/topics/abaper) are pa
 | Repository | Description |
 |------------|-------------|
 | [cai-cli](https://github.com/bluefunda/cai-cli) | Command line interface for BlueFunda AI (`ai` binary) |
-| [llm-router](https://github.com/bluefunda/llm-router) | LLM router for model selection and request routing |
+| [llmrouter](https://github.com/bluefunda/llmrouter) | LLM router for model selection and request routing |
 
 ## Other Projects
 
