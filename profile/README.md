@@ -28,13 +28,26 @@ All repositories tagged with [`abaper`](https://github.com/topics/abaper) are pa
 ### Getting Started
 
 - **Try it in the browser** — [bluefunda.com/login](https://bluefunda.com/login)
-- **Use the CLI** — `go install github.com/bluefunda/cai-cli/cmd/ai@latest`
+- **Use the CLI** — `brew tap bluefunda/tap && brew install --cask bai`
 - **Learn more** — [bluefunda.com/bluefunda-ai](https://bluefunda.com/bluefunda-ai/)
 
 | Repository | Description |
 |------------|-------------|
-| [cai-cli](https://github.com/bluefunda/cai-cli) | Command line interface for BlueFunda AI (`ai` binary) |
+| [bluefunda-ai](https://github.com/bluefunda/bluefunda-ai) | CLI for BlueFunda AI — TUI, chat, agentic coding, MCP (`bai` binary) |
 | [llmrouter](https://github.com/bluefunda/llmrouter) | LLM router for model selection and request routing |
+
+## BlueRequests
+
+**BlueRequests** is an event-driven change and release management platform for SAP operations — manage transport requests, change orders, approvals, and release workflows from the command line or a TUI dashboard.
+
+### Getting Started
+
+- **Use the CLI** — `brew tap bluefunda/tap && brew install --cask req`
+- **Learn more** — [bluefunda.com](https://bluefunda.com)
+
+| Repository | Description |
+|------------|-------------|
+| [bluerequests](https://github.com/bluefunda/bluerequests) | CLI for BlueRequests change and release management (`req` binary) |
 
 ## Other Projects
 
