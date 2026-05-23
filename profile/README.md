@@ -42,12 +42,12 @@ All repositories tagged with [`abaper`](https://github.com/topics/abaper) are pa
 
 ### Getting Started
 
-- **Use the CLI** — `brew tap bluefunda/tap && brew install --cask req`
+- **Use the CLI** — `brew tap bluefunda/tap && brew install --cask breq`
 - **Learn more** — [bluefunda.com](https://bluefunda.com)
 
 | Repository | Description |
 |------------|-------------|
-| [bluerequests](https://github.com/bluefunda/bluerequests) | CLI for BlueRequests change and release management (`req` binary) |
+| [bluerequests](https://github.com/bluefunda/bluerequests) | CLI for BlueRequests change and release management (`breq` binary) |
 
 ## Other Projects
 
