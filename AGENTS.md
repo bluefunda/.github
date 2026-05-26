@@ -25,7 +25,7 @@ Release → docker-deploy → gitops (Komodo) + github-release-notes
 ## Available workflows (consumed via `uses: bluefunda/.github/.github/workflows/<name>.yml@main`)
 
 - `go-review.yml` — posts advisory Claude Code review as PR comment; requires `ANTHROPIC_API_KEY`
-- `go-ci.yml` — build, test, lint
+- `go-ci.yml` — build, test, lint; use `goprivate: github.com/bluefunda/*` for repos with private deps
 - `release-please.yml` — version bump, CHANGELOG, release PR; outputs `release_created` + `tag_name`
 - `docker-deploy.yml` — build image, push GHCR, update gitops compose file for Komodo
 - `github-release-notes.yml` — generate PR-based release notes via release-foundry binary
