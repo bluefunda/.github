@@ -21,7 +21,7 @@ jobs:
           EXTRA: ${{ inputs.extra-types }}
         run: |
           # Base types required by release-please + release-foundry label mapping.
-          BASE_TYPES="feat fix perf security chore refactor docs ci test style infra"
+          BASE_TYPES="feat fix perf security chore build refactor docs ci test style infra"
           ALL_TYPES="$BASE_TYPES $EXTRA"
 
           # Build regex: ^(type1|type2|...)[(!|(scope)]:
