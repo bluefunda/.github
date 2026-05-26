@@ -27,7 +27,7 @@ Release → docker-deploy → gitops (Komodo) + github-release-notes
 - `go-review.yml` — posts advisory Claude Code review as PR comment; requires `ANTHROPIC_API_KEY`
 - `go-ci.yml` — build, test, lint; use `goprivate: github.com/bluefunda/*` for repos with private deps
 - `release-please.yml` — version bump, CHANGELOG, release PR; outputs `release_created` + `tag_name`
-- `docker-deploy.yml` — build image, push GHCR, update gitops compose file for Komodo
+- `docker-deploy.yml` — build image, push Docker Hub, update gitops compose file for Komodo
 - `github-release-notes.yml` — generate PR-based release notes via release-foundry binary
 - `go-binary-release.yml` — GoReleaser + Homebrew tap for CLI tools
 - `pr-title-check.yml` — enforce conventional commit titles
