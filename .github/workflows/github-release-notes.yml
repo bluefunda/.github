@@ -31,7 +31,7 @@ jobs:
           path: _rf
           token: ${{ secrets.GH_PAT || github.token }}
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: _rf/go.mod
           cache-dependency-path: _rf/go.sum
