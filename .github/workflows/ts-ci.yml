@@ -1,0 +1,79 @@
+name: TypeScript CI
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version'
+        required: false
+        type: string
+        default: '22'
+      build-command:
+        required: false
+        type: string
+        default: 'npm run build'
+      test-command:
+        required: false
+        type: string
+        default: 'npm test'
+      typecheck-command:
+        required: false
+        type: string
+        default: 'npm run typecheck'
+      lint-command:
+        required: false
+        type: string
+        default: 'npm run lint'
+    secrets:
+      GH_PAT:
+        description: 'GitHub PAT for private package access'
+        required: false
+
+jobs:
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: ${{ inputs.typecheck-command }}
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: ${{ inputs.test-command }}
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: ${{ inputs.build-command }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: ${{ inputs.lint-command }}

@@ -1,0 +1,80 @@
+name: TypeScript Review (Advisory)
+
+on:
+  workflow_call:
+    inputs:
+      pr-number:
+        description: 'Pull request number to review and comment on'
+        required: true
+        type: number
+    secrets:
+      GH_PAT:
+        description: 'GitHub PAT for PR comments'
+        required: false
+      ANTHROPIC_API_KEY:
+        description: 'Anthropic API key for Claude Code'
+        required: true
+
+jobs:
+  ts-review:
+    name: Advisory TypeScript Review
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch ts-review prompt
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          gh api repos/bluefunda/.github/contents/.claude/commands/ts-review.md \
+            --jq '.content' | base64 -d > /tmp/ts-review-prompt.md
+
+      - name: Get PR diff
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          gh pr diff ${{ inputs.pr-number }} \
+            --repo "${{ github.repository }}" > /tmp/pr.diff
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run ts-review on PR diff
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          {
+            cat /tmp/ts-review-prompt.md
+            echo ""
+            echo "---"
+            echo "Apply the above review framework to the following PR diff only."
+            echo "Focus your findings on the changed code — do not review unchanged code."
+            echo ""
+            cat /tmp/pr.diff
+          } > /tmp/full-prompt.txt
+
+          claude -p "$(cat /tmp/full-prompt.txt)" \
+            --output-format text \
+            --max-turns 1 \
+            > /tmp/review.md 2>&1 || true
+
+          if [ ! -s /tmp/review.md ]; then
+            echo "_ts-review produced no output — check that ANTHROPIC_API_KEY is set._" \
+              > /tmp/review.md
+          fi
+
+      - name: Post advisory comment
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          {
+            echo "> **Advisory TypeScript Review** — informational only, not a blocking check."
+            echo ""
+            cat /tmp/review.md
+          } > /tmp/comment.md
+          gh pr comment ${{ inputs.pr-number }} \
+            --repo "${{ github.repository }}" \
+            --body-file /tmp/comment.md
