@@ -9,6 +9,7 @@ This is the `bluefunda/.github` repo — org-wide CI/CD configuration for all bl
 | `.github/workflows/` | Reusable workflows consumed by all bluefunda repos |
 | `.github/PULL_REQUEST_TEMPLATE.md` | Org-wide PR template |
 | `.claude/commands/go-review.md` | `/go-review` slash command — idiomatic Go audit prompt |
+| `.claude/commands/ts-review.md` | `/ts-review` slash command — idiomatic TypeScript audit prompt |
 | `CODEOWNERS` | `* @bluefunda/maintainers` |
 | `profile/README.md` | Public org profile on github.com/bluefunda |
 
@@ -26,6 +27,8 @@ Release → docker-deploy → gitops (Komodo) + github-release-notes
 
 - `go-review.yml` — posts advisory Claude Code review as PR comment; requires `ANTHROPIC_API_KEY`
 - `go-ci.yml` — build, test, lint; use `goprivate: github.com/bluefunda/*` for repos with private deps
+- `ts-review.yml` — posts advisory TypeScript review as PR comment; requires `ANTHROPIC_API_KEY`
+- `ts-ci.yml` — typecheck, test, build, lint for TypeScript/Node.js repos
 - `release-please.yml` — version bump, CHANGELOG, release PR; outputs `release_created` + `tag_name`
 - `docker-deploy.yml` — build image, push Docker Hub, update gitops compose file for Komodo
 - `github-release-notes.yml` — generate PR-based release notes via release-foundry binary
@@ -36,4 +39,5 @@ Release → docker-deploy → gitops (Komodo) + github-release-notes
 
 - Do not duplicate workflow logic across repos — add it here and reference via `workflow_call`
 - The `/go-review` prompt in `.claude/commands/go-review.md` is fetched at runtime by `go-review.yml` — keep it up to date here
+- The `/ts-review` prompt in `.claude/commands/ts-review.md` is fetched at runtime by `ts-review.yml` — keep it up to date here
 - `profile/README.md` is public-facing; keep it product-focused, not engineering-internal
