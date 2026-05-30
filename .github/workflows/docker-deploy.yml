@@ -1,48 +1,65 @@
 name: Docker Deploy
 
+# Reusable workflow: builds a multi-arch Docker image and pushes to GHCR.
+
 on:
   workflow_call:
     inputs:
       tag:
-        description: 'Version tag for the Docker image'
+        description: Version tag for the Docker image (e.g. v1.2.3)
         required: true
         type: string
       image-name:
-        description: 'Docker image name (defaults to repo name)'
+        description: Docker image name (defaults to the calling repo name)
         required: false
         type: string
-        default: ''
+        default: ""
       build-args:
-        description: 'Additional Docker build arguments (one per line)'
+        description: Additional Docker build arguments (one per line)
         required: false
         type: string
-        default: ''
+        default: ""
+      context:
+        description: Docker build context path (defaults to repo root)
+        required: false
+        type: string
+        default: "."
+      file:
+        description: Path to Dockerfile (defaults to Dockerfile in context dir)
+        required: false
+        type: string
+        default: ""
+      runner:
+        description: Runner label. Defaults to ubuntu-latest.
+        required: false
+        type: string
+        default: ubuntu-latest
     secrets:
-      DOCKER_USERNAME:
-        required: true
-      DOCKER_PASSWORD:
-        required: true
       GH_PAT:
-        required: true
+        description: GitHub PAT for private module access during build.
+        required: false
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Determine image name
         id: image
@@ -51,18 +68,32 @@ jobs:
           if [ -z "$IMAGE_NAME" ]; then
             IMAGE_NAME="${GITHUB_REPOSITORY##*/}"
           fi
-          echo "name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+          echo "name=$IMAGE_NAME" >> "$GITHUB_OUTPUT"
 
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v7
+      - name: Resolve Dockerfile path
+        id: dockerfile
+        run: |
+          FILE="${{ inputs.file }}"
+          if [ -z "$FILE" ]; then
+            FILE="${{ inputs.context }}/Dockerfile"
+          fi
+          echo "path=$FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ inputs.context }}
+          file: ${{ steps.dockerfile.outputs.path }}
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             GH_PAT=${{ secrets.GH_PAT }}
             ${{ inputs.build-args }}
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ steps.image.outputs.name }}:${{ inputs.tag }}
-            ${{ secrets.DOCKER_USERNAME }}/${{ steps.image.outputs.name }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ steps.image.outputs.name }}:${{ inputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/${{ steps.image.outputs.name }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
