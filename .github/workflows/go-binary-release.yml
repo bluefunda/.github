@@ -4,21 +4,31 @@ on:
   workflow_call:
     inputs:
       tag:
-        description: 'Release tag to build'
+        description: Release tag to build
         required: true
         type: string
       goreleaser-version:
-        description: 'GoReleaser version'
+        description: GoReleaser version
         required: false
         type: string
         default: '~> v2'
       goreleaser-args:
-        description: 'GoReleaser arguments'
+        description: GoReleaser arguments
         required: false
         type: string
         default: 'release --clean'
+      goreleaser-config:
+        description: Path to .goreleaser.yml (defaults to repo root)
+        required: false
+        type: string
+        default: ''
+      go-version-file:
+        description: Path to go.mod or go.work for version detection
+        required: false
+        type: string
+        default: 'go.mod'
       test-command:
-        description: 'Test command to run before release'
+        description: Test command to run before release (empty to skip)
         required: false
         type: string
         default: 'go test -race -count=1 ./...'
@@ -40,24 +50,31 @@ jobs:
       - name: Configure Git for private modules
         run: git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
 
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v6
+      - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: ${{ inputs.go-version-file }}
 
       - name: Run tests
+        if: inputs.test-command != ''
         run: ${{ inputs.test-command }}
 
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+      - name: Resolve goreleaser config flag
+        id: config
+        run: |
+          if [ -n "${{ inputs.goreleaser-config }}" ]; then
+            echo "flag=--config ${{ inputs.goreleaser-config }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "flag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: goreleaser/goreleaser-action@v6
         with:
           version: ${{ inputs.goreleaser-version }}
-          args: ${{ inputs.goreleaser-args }}
+          args: ${{ inputs.goreleaser-args }} ${{ steps.config.outputs.flag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
