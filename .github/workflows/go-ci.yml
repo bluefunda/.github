@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       go-version:
-        description: 'Go version to use (defaults to version in go.mod)'
+        description: Go version to use (defaults to version in go.mod)
         required: false
         type: string
         default: ''
@@ -16,6 +16,13 @@ on:
         required: false
         type: string
         default: ''
+      working-directory:
+        description: >
+          Working directory for build, test, and lint steps.
+          Use for monorepos where the Go module is in a subdirectory (e.g. backend).
+        required: false
+        type: string
+        default: '.'
       build-command:
         required: false
         type: string
@@ -38,18 +45,22 @@ on:
         default: false
     secrets:
       GH_PAT:
-        description: 'GitHub PAT for private module access. Required when goprivate is set.'
+        description: GitHub PAT for private module access. Required when goprivate is set.
         required: false
 
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     env:
       GOPRIVATE: ${{ inputs.goprivate }}
     steps:
       - name: Configure Git for private modules
         if: inputs.goprivate != ''
+        working-directory: '.'
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
@@ -87,11 +98,15 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     env:
       GOPRIVATE: ${{ inputs.goprivate }}
     steps:
       - name: Configure Git for private modules
         if: inputs.goprivate != ''
+        working-directory: '.'
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
@@ -123,11 +138,15 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     env:
       GOPRIVATE: ${{ inputs.goprivate }}
     steps:
       - name: Configure Git for private modules
         if: inputs.goprivate != ''
+        working-directory: '.'
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
@@ -158,3 +177,4 @@ jobs:
       - uses: golangci/golangci-lint-action@v9
         with:
           version: ${{ inputs.golangci-lint-version }}
+          working-directory: ${{ inputs.working-directory }}
