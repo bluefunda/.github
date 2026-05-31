@@ -31,6 +31,11 @@ on:
         required: false
         type: string
         default: 'npm run lint'
+      runner:
+        description: Runner label to use (e.g. ubuntu-latest or self-hosted)
+        required: false
+        type: string
+        default: 'ubuntu-latest'
     secrets:
       GH_PAT:
         description: 'GitHub PAT for private package access'
@@ -39,7 +44,7 @@ on:
 jobs:
   typecheck:
     name: Type Check
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -55,7 +60,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -71,7 +76,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -87,7 +92,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
