@@ -10,6 +10,15 @@ updates:
     labels:
       - infrastructure
 
+  # Docker base images in Dockerfiles
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - infrastructure
+
   # GitHub Actions
   - package-ecosystem: github-actions
     directory: /
