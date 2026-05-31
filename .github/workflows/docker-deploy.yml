@@ -40,6 +40,11 @@ on:
         required: false
         type: string
         default: ""
+      platforms:
+        description: Docker build platforms (e.g. linux/amd64 or linux/amd64,linux/arm64).
+        required: false
+        type: string
+        default: linux/amd64,linux/arm64
       runner:
         description: Runner label. Defaults to ubuntu-latest.
         required: false
@@ -96,7 +101,7 @@ jobs:
           context: ${{ inputs.context }}
           file: ${{ steps.dockerfile.outputs.path }}
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ inputs.platforms }}
           build-args: |
             GH_PAT=${{ secrets.GH_PAT }}
             ${{ inputs.build-args }}
