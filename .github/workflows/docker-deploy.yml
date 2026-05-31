@@ -1,6 +1,7 @@
 name: Docker Deploy
 
-# Reusable workflow: builds a multi-arch Docker image and pushes to GHCR.
+# Reusable workflow: builds a multi-arch Docker image, pushes to GHCR,
+# and optionally updates a compose file in the gitops repo so Komodo redeploys.
 
 on:
   workflow_call:
@@ -29,6 +30,16 @@ on:
         required: false
         type: string
         default: ""
+      gitops-repo:
+        description: GitOps repo to update (org/repo). Leave empty to skip.
+        required: false
+        type: string
+        default: ""
+      gitops-compose-path:
+        description: Path to the compose.yaml inside the gitops repo.
+        required: false
+        type: string
+        default: ""
       runner:
         description: Runner label. Defaults to ubuntu-latest.
         required: false
@@ -36,7 +47,7 @@ on:
         default: ubuntu-latest
     secrets:
       GH_PAT:
-        description: GitHub PAT for private module access during build.
+        description: GitHub PAT — required for private module build args and gitops update.
         required: false
 
 jobs:
@@ -97,3 +108,31 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Update image tag in gitops repo
+        if: inputs.gitops-repo != '' && inputs.gitops-compose-path != ''
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          if [ -z "$GH_PAT" ]; then
+            echo "::warning::GH_PAT not set — skipping gitops update"
+            exit 0
+          fi
+          git clone "https://x-access-token:${GH_PAT}@github.com/${{ inputs.gitops-repo }}.git" /tmp/gitops
+          cd /tmp/gitops
+
+          IMAGE_NAME="${{ steps.image.outputs.name }}"
+          OWNER="${{ github.repository_owner }}"
+          COMPOSE="${{ inputs.gitops-compose-path }}"
+
+          sed -i "s|ghcr.io/${OWNER}/${IMAGE_NAME}:.*|ghcr.io/${OWNER}/${IMAGE_NAME}:${{ inputs.tag }}|" "$COMPOSE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$COMPOSE"
+          if git diff --staged --quiet; then
+            echo "No changes — gitops already up to date"
+          else
+            git commit -m "chore: update ${IMAGE_NAME} to ${{ inputs.tag }}"
+            git push
+          fi
