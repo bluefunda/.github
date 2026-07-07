@@ -23,7 +23,7 @@ All clients share the same backend and AI capabilities.
 |------------|-----------|---------|
 | [abaper-editor](https://github.com/bluefunda/abaper-editor) | Browser-based ABAP IDE — Monaco editor, no install | [abaper.bluefunda.com](https://abaper.bluefunda.com) |
 | [abaper-vscode](https://github.com/bluefunda/abaper-vscode) | AI-powered ABAP assistant for VS Code | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=bluefunda.abaper) |
-| [abaper](https://github.com/bluefunda/abaper) | CLI, TUI, and Go SDK — terminal workflows, scripting, CI/CD | `brew install --cask abaper` |
+| [abaper](https://github.com/bluefunda/abaper) | CLI, TUI, and Go SDK — terminal workflows, scripting, CI/CD | `brew install --cask abaper` or `curl -fsSL bluefunda.com/abaper/install.sh \| sh` |
 | [abaper-eclipse](https://github.com/bluefunda/abaper-eclipse) | Eclipse / ADT plugin _(coming soon)_ | — |
 
 ### Which client should I use?
@@ -60,6 +60,8 @@ code --install-extension bluefunda.abaper
 
 # CLI (macOS)
 brew tap bluefunda/tap && brew install --cask abaper
+# CLI (Linux/macOS)
+curl -fsSL bluefunda.com/abaper/install.sh | sh
 abaper login
 abaper system add --host https://my-sap:44300 -u USER -p PASS
 abaper   # opens interactive TUI
@@ -74,7 +76,7 @@ abaper   # opens interactive TUI
 ### Getting started
 
 - **Try it** — [bluefunda.com/login](https://bluefunda.com/login)
-- **CLI** — `brew tap bluefunda/tap && brew install --cask bai`
+- **CLI** — `brew tap bluefunda/tap && brew install --cask bai` or `curl -fsSL bluefunda.com/ai/install.sh | sh`
 - **Learn more** — [bluefunda.com/bluefunda-ai](https://bluefunda.com/bluefunda-ai/)
 
 | Repository | Description |
