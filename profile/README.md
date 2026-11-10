@@ -76,7 +76,7 @@ abaper   # opens interactive TUI
 ### Getting started
 
 - **Try it** — [bluefunda.com/login](https://bluefunda.com/login)
-- **CLI** — `brew tap bluefunda/tap && brew install --cask bai` or `curl -fsSL bluefunda.com/ai/install.sh | sh`
+- **CLI** — `brew install bluefunda/tap/bai` or `curl -fsSL bluefunda.com/ai/install.sh | sh`
 - **Learn more** — [bluefunda.com/bluefunda-ai](https://bluefunda.com/bluefunda-ai/)
 
 | Repository | Description |
