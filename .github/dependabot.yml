@@ -1,25 +1,8 @@
 version: 2
 updates:
-  # Go modules — applies to any repo that adopts this org default
-  - package-ecosystem: gomod
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
-    labels:
-      - infrastructure
-
-  # Docker base images in Dockerfiles
-  - package-ecosystem: docker
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-    labels:
-      - infrastructure
-
-  # GitHub Actions
+  # This repo only holds reusable workflows, so GitHub Actions is the only
+  # ecosystem to track. Dependabot does not inherit this file org-wide: each
+  # repo keeps its own .github/dependabot.yml for gomod/docker/etc.
   - package-ecosystem: github-actions
     directory: /
     schedule:
