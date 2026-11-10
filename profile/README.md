@@ -81,7 +81,7 @@ abaper   # opens interactive TUI
 
 | Repository | Description |
 |------------|-------------|
-| [bluefunda-ai](https://github.com/bluefunda/bluefunda-ai) | CLIs for BlueFunda AI — TUI, chat, agentic coding, MCP (`bai` binary, with ABAP commands under `bai abap`), and the ABAPer CLI (`abaper` binary) |
+| [bluefunda-ai](https://github.com/bluefunda/bluefunda-ai) | CLIs for BlueFunda AI — TUI, chat, agentic coding, MCP (`bai` binary, with ABAP commands under `bai abap` and BlueRequests under `bai requests`), the ABAPer CLI (`abaper`) and the BlueRequests CLI (`breq`) |
 | [llmrouter](https://github.com/bluefunda/llmrouter) | LLM router for model selection and request routing |
 
 ---
@@ -92,12 +92,12 @@ abaper   # opens interactive TUI
 
 ### Getting started
 
-- **CLI** — `brew tap bluefunda/tap && brew install --cask breq`
+- **CLI** — `brew tap bluefunda/tap && brew install --cask breq`, or `bai requests` if you already use bai
 - **Learn more** — [bluefunda.com](https://bluefunda.com)
 
 | Repository | Description |
 |------------|-------------|
-| [bluerequests](https://github.com/bluefunda/bluerequests) | CLI for BlueRequests change and release management (`breq` binary) |
+| [breq](https://github.com/bluefunda/bluefunda-ai/tree/main/breq) | CLI for BlueRequests change and release management (`breq` binary). Built from the [bluefunda-ai](https://github.com/bluefunda/bluefunda-ai) monorepo alongside `bai` |
 
 ---
 
