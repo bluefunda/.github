@@ -23,7 +23,7 @@ All clients share the same backend and AI capabilities.
 |------------|-----------|---------|
 | [abaper-editor](https://github.com/bluefunda/abaper-editor) | Browser-based ABAP IDE — Monaco editor, no install | [abaper.bluefunda.com](https://abaper.bluefunda.com) |
 | [abaper-vscode](https://github.com/bluefunda/abaper-vscode) | AI-powered ABAP assistant for VS Code | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=bluefunda.abaper) |
-| [abaper](https://github.com/bluefunda/abaper) | CLI, TUI, and Go SDK — terminal workflows, scripting, CI/CD | `brew install --cask abaper` or `curl -fsSL bluefunda.com/abaper/install.sh \| sh` |
+| [abaper](https://github.com/bluefunda/bluefunda-ai/tree/main/abaper) | CLI, TUI, language server, and Go SDK — terminal workflows, scripting, CI/CD. Built from the [bluefunda-ai](https://github.com/bluefunda/bluefunda-ai) monorepo alongside `bai` | `brew install --cask abaper` or `curl -fsSL bluefunda.com/abaper/install.sh \| sh` |
 | [abaper-eclipse](https://github.com/bluefunda/abaper-eclipse) | Eclipse / ADT plugin _(coming soon)_ | — |
 
 ### Which client should I use?
@@ -33,7 +33,7 @@ All clients share the same backend and AI capabilities.
 | Try ABAPer with zero setup | **Web IDE** — open [abaper.bluefunda.com](https://abaper.bluefunda.com) |
 | Work inside VS Code | **abaper-vscode** extension |
 | Use the terminal, write shell scripts, or run in CI/CD | **abaper CLI** |
-| Build SAP tooling in Go | **abaper SDK** (`lib/` package) |
+| Build SAP tooling in Go | **abaper SDK** (`github.com/bluefunda/bluefunda-ai/abaper/lib`) |
 | Keep using Eclipse ADT | **abaper-eclipse** _(coming soon)_ |
 
 ### Feature comparison
@@ -42,7 +42,7 @@ All clients share the same backend and AI capabilities.
 |---------|:-------:|:-------:|:---------:|
 | AI pair-programmer chat | ✓ | ✓ | ✓ |
 | Generate & deploy ABAP | ✓ | ✓ | ✓ |
-| Syntax check / LSP | ✓ | ✓ | SDK |
+| Syntax check / LSP | ✓ | ✓ | ✓ (`abaper lsp`) |
 | Run unit tests | ✓ | ✓ | ✓ |
 | SAP system management | ✓ | ✓ | ✓ |
 | No browser required | — | — | ✓ |
@@ -81,7 +81,7 @@ abaper   # opens interactive TUI
 
 | Repository | Description |
 |------------|-------------|
-| [bluefunda-ai](https://github.com/bluefunda/bluefunda-ai) | CLI for BlueFunda AI — TUI, chat, agentic coding, MCP (`bai` binary) |
+| [bluefunda-ai](https://github.com/bluefunda/bluefunda-ai) | CLIs for BlueFunda AI — TUI, chat, agentic coding, MCP (`bai` binary, with ABAP commands under `bai abap`), and the ABAPer CLI (`abaper` binary) |
 | [llmrouter](https://github.com/bluefunda/llmrouter) | LLM router for model selection and request routing |
 
 ---
