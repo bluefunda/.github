@@ -50,6 +50,13 @@ on:
         required: false
         type: string
         default: ubuntu-latest
+      dockerfile-policy:
+        description: >
+          Dockerfile standard check (docs/dockerfile.md in bluefunda/.github):
+          'warn' reports violations, 'enforce' fails before pushing, 'off' skips.
+        required: false
+        type: string
+        default: warn
     secrets:
       GH_PAT:
         description: GitHub PAT — required for private module build args and gitops update.
@@ -104,6 +111,93 @@ jobs:
           else
             echo "version=" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Validate dockerfile-policy
+        env:
+          POLICY: ${{ inputs.dockerfile-policy }}
+        run: |
+          case "$POLICY" in
+            warn|enforce|off) ;;
+            *) echo "::error::dockerfile-policy must be warn, enforce or off (got '$POLICY')"; exit 1 ;;
+          esac
+
+      - name: Lint Dockerfile (hadolint)
+        if: inputs.dockerfile-policy != 'off'
+        env:
+          POLICY: ${{ inputs.dockerfile-policy }}
+          FILE: ${{ steps.dockerfile.outputs.path }}
+        run: |
+          # DL3002: last USER is root; DL3006: untagged image; DL3007: :latest.
+          # These are raised to errors; everything else is advisory.
+          docker run --rm -v "$GITHUB_WORKSPACE:/w" -w /w hadolint/hadolint:v2.12.0 \
+            /bin/hadolint --no-fail --format json \
+            --error DL3002 --error DL3006 --error DL3007 "$FILE" > "$RUNNER_TEMP/hadolint.json"
+
+          if [ "$POLICY" = enforce ]; then LEVEL=error; else LEVEL=warning; fi
+          jq -r --arg level "$LEVEL" '.[] |
+            "::\(if .level == "error" then $level else "notice" end) file=\(.file),line=\(.line)::hadolint \(.code): \(.message)"' \
+            "$RUNNER_TEMP/hadolint.json"
+
+          ERRORS=$(jq '[.[] | select(.level == "error")] | length' "$RUNNER_TEMP/hadolint.json")
+          if [ "$ERRORS" -gt 0 ] && [ "$POLICY" = enforce ]; then
+            echo "::error::$ERRORS Dockerfile policy violation(s) — see docs/dockerfile.md in bluefunda/.github"
+            exit 1
+          fi
+
+      - name: Resolve native platform for policy check
+        if: inputs.dockerfile-policy != 'off'
+        id: native
+        env:
+          PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          case "$(uname -m)" in
+            x86_64) NATIVE=linux/amd64 ;;
+            aarch64|arm64) NATIVE=linux/arm64 ;;
+            *) NATIVE="" ;;
+          esac
+          # Fall back to the first requested platform if the native one isn't built.
+          if [ -z "$NATIVE" ] || [[ ",$PLATFORMS," != *",$NATIVE,"* ]]; then
+            NATIVE="${PLATFORMS%%,*}"
+          fi
+          echo "platform=$NATIVE" >> "$GITHUB_OUTPUT"
+
+      # Single-platform build loaded locally so the image config can be inspected
+      # before anything is pushed. Its layers are reused by the multi-arch build below.
+      - name: Build image for policy check
+        if: inputs.dockerfile-policy != 'off'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ steps.dockerfile.outputs.path }}
+          push: false
+          load: true
+          platforms: ${{ steps.native.outputs.platform }}
+          build-args: |
+            GH_PAT=${{ secrets.GH_PAT }}
+            GO_VERSION=${{ steps.goversion.outputs.version }}
+            ${{ inputs.build-args }}
+          tags: policy-check:${{ github.sha }}
+          cache-from: type=gha
+
+      - name: Check image runs as non-root
+        if: inputs.dockerfile-policy != 'off'
+        env:
+          POLICY: ${{ inputs.dockerfile-policy }}
+        run: |
+          IMAGE_USER=$(docker image inspect --format '{{.Config.User}}' "policy-check:${{ github.sha }}")
+          case "${IMAGE_USER%%:*}" in
+            ""|root|0)
+              MSG="Image runs as root (USER='${IMAGE_USER}'). Set a non-root USER in the final stage — see docs/dockerfile.md in bluefunda/.github"
+              if [ "$POLICY" = enforce ]; then
+                echo "::error::$MSG"
+                exit 1
+              fi
+              echo "::warning::$MSG"
+              ;;
+            *)
+              echo "Image runs as '${IMAGE_USER}'"
+              ;;
+          esac
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
