@@ -41,7 +41,7 @@ uses: bluefunda/.github/.github/workflows/<name>.yml@main
 | `go-review.yml` | PR opened / updated | Advisory Claude Code review comment |
 | `go-ci.yml` | PR + push to main | Build, test, lint |
 | `release-please.yml` | Push to main | Version bump + CHANGELOG + release PR |
-| `docker-deploy.yml` | After release | Build image, push GHCR, update gitops |
+| `docker-deploy.yml` | After release | Check Dockerfile standard, build image, push GHCR, update gitops |
 | `github-release-notes.yml` | After release | Generate release notes via release-foundry |
 | `go-binary-release.yml` | After release | GoReleaser binary + Homebrew tap |
 | `pr-title-check.yml` | PR opened / updated | Enforce conventional commit titles |
@@ -60,6 +60,8 @@ Copy the workflow stubs from [`template-go`](https://github.com/bluefunda/templa
   release-please.yml  → release-please.yml + github-release-notes.yml chain
                         (docker-deploy job commented out — uncomment if deploying via Komodo)
 ```
+
+Images must follow the [Dockerfile standard](docs/dockerfile.md) — `docker-deploy.yml` checks it on every release.
 
 Required org secrets (already configured for private repos):
 

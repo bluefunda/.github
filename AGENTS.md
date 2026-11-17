@@ -10,6 +10,7 @@ This is the `bluefunda/.github` repo — org-wide CI/CD configuration for all bl
 | `.github/PULL_REQUEST_TEMPLATE.md` | Org-wide PR template |
 | `.claude/commands/go-review.md` | `/go-review` slash command — idiomatic Go audit prompt |
 | `.claude/commands/ts-review.md` | `/ts-review` slash command — idiomatic TypeScript audit prompt |
+| `docs/dockerfile.md` | Dockerfile standard: non-root runtime, pinned bases, `GH_PAT` handling, gitops runtime defaults |
 | `CODEOWNERS` | `* @bluefunda/maintainers` |
 | `profile/README.md` | Public org profile on github.com/bluefunda |
 
@@ -30,7 +31,7 @@ Release → docker-deploy → gitops (Komodo) + github-release-notes
 - `ts-review.yml` — posts advisory TypeScript review as PR comment; requires `ANTHROPIC_API_KEY`
 - `ts-ci.yml` — typecheck, test, build, lint for TypeScript/Node.js repos
 - `release-please.yml` — version bump, CHANGELOG, release PR; outputs `release_created` + `tag_name`
-- `docker-deploy.yml` — build image, push Docker Hub, update gitops compose file for Komodo
+- `docker-deploy.yml` — build image, push GHCR, update gitops compose file for Komodo; checks the Dockerfile standard (`dockerfile-policy: warn|enforce|off`, default `warn`)
 - `github-release-notes.yml` — generate PR-based release notes via release-foundry binary
 - `go-binary-release.yml` — GoReleaser + Homebrew tap for CLI tools
 - `pr-title-check.yml` — enforce conventional commit titles
@@ -40,4 +41,5 @@ Release → docker-deploy → gitops (Komodo) + github-release-notes
 - Do not duplicate workflow logic across repos — add it here and reference via `workflow_call`
 - The `/go-review` prompt in `.claude/commands/go-review.md` is fetched at runtime by `go-review.yml` — keep it up to date here
 - The `/ts-review` prompt in `.claude/commands/ts-review.md` is fetched at runtime by `ts-review.yml` — keep it up to date here
+- Dockerfiles must follow [docs/dockerfile.md](docs/dockerfile.md) — non-root runtime user, pinned base images, `GH_PAT` only via `.netrc` in the builder stage
 - `profile/README.md` is public-facing; keep it product-focused, not engineering-internal
