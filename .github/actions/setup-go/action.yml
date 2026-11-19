@@ -58,7 +58,7 @@ runs:
 
     - name: Resolve org version pins
       id: pins
-      uses: bluefunda/.github/.github/actions/versions@main
+      uses: bluefunda/.github/.github/actions/versions@trial/rf-merge
 
     # Before setup-go, which runs `go env` for its cache: with the default
     # GOTOOLCHAIN=auto a newer go.mod would make Go download another toolchain.

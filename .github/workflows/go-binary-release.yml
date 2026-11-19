@@ -90,7 +90,7 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
-      - uses: bluefunda/.github/.github/actions/setup-go@main
+      - uses: bluefunda/.github/.github/actions/setup-go@trial/rf-merge
         with:
           go-version: ${{ inputs.go-version }}
           gh-pat: ${{ secrets.GH_PAT }}
@@ -115,7 +115,7 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
-      - uses: bluefunda/.github/.github/actions/setup-go@main
+      - uses: bluefunda/.github/.github/actions/setup-go@trial/rf-merge
         with:
           go-version: ${{ inputs.go-version }}
           gh-pat: ${{ secrets.GH_PAT }}

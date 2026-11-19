@@ -126,7 +126,7 @@ jobs:
 
       - name: Resolve org version pins
         id: pins
-        uses: bluefunda/.github/.github/actions/versions@main
+        uses: bluefunda/.github/.github/actions/versions@trial/rf-merge
 
       - name: Validate dockerfile-policy
         env:
