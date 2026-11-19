@@ -1,7 +1,7 @@
 # Dockerfile standard
 
 Applies to every bluefunda image built by [`docker-deploy.yml`](../.github/workflows/docker-deploy.yml).
-The workflow checks the first two rules on every release (see [Enforcement](#enforcement)).
+The workflow checks the first two rules on every release (see [Enforcement](#enforcement)). Repos still deployed with release-foundry's copy of `docker-deploy.yml` aren't checked yet ([#32](https://github.com/bluefunda/.github/issues/32)).
 
 ## Rules
 

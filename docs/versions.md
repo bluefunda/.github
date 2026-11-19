@@ -34,4 +34,4 @@ The `go` line in each repo's `go.mod` is that module's minimum Go version. It do
 
 ## Not covered yet
 
-Repos deployed with release-foundry's `docker-deploy.yml` don't receive these build args until [#32](https://github.com/bluefunda/.github/issues/32) is settled.
+The pins only reach repos that call the workflows in **this** repo. Most repos still call the duplicate `go-ci`, `release-please` and `docker-deploy` workflows in `bluefunda/release-foundry`. Those build with each repo's `go.mod` Go version and Dockerfile base images, and get no pin build args. Consolidation is tracked in [#32](https://github.com/bluefunda/.github/issues/32).
