@@ -4,7 +4,9 @@ updates:
   # GitHub Actions and the pin file only. Dependabot does not inherit this file
   # org-wide: each repo keeps its own .github/dependabot.yml for gomod/etc.
   - package-ecosystem: github-actions
-    directory: /
+    directories:
+      - /
+      - /.github/actions/*
     schedule:
       interval: weekly
       day: monday
