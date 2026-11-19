@@ -59,6 +59,13 @@ on:
         required: false
         type: string
         default: warn
+      push:
+        description: >
+          Push the image and update gitops. false builds and runs the
+          Dockerfile checks only, e.g. to check a Dockerfile on a PR.
+        required: false
+        type: boolean
+        default: true
     secrets:
       GH_PAT:
         description: GitHub PAT — required for private module build args and gitops update.
@@ -230,7 +237,7 @@ jobs:
         with:
           context: ${{ inputs.context }}
           file: ${{ steps.dockerfile.outputs.path }}
-          push: true
+          push: ${{ inputs.push }}
           platforms: ${{ inputs.platforms }}
           build-args: |
             GH_PAT=${{ secrets.GH_PAT }}
@@ -252,7 +259,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Update image tag in gitops repo
-        if: inputs.gitops-repo != '' && inputs.gitops-compose-path != ''
+        if: inputs.push && inputs.gitops-repo != '' && inputs.gitops-compose-path != ''
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
