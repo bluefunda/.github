@@ -23,7 +23,7 @@ Check before merging a Go minor bump:
 
 The [`versions`](../.github/actions/versions/action.yml) composite action reads the file and outputs `go-version`, `go-image`, `alpine-image` and `distroless-image`. The reusable workflows call it at `@main`:
 
-- **`go-ci`, `go-binary-release`:** `setup-go` installs the pinned Go version, and `GOTOOLCHAIN=local` stops Go from downloading a different toolchain. A `go-version` input still overrides the pin.
+- **`go-ci`, `go-binary-release`:** the [`setup-go`](../.github/actions/setup-go/action.yml) composite action installs the pinned Go version and sets `GOTOOLCHAIN=local`, which stops Go from downloading a different toolchain. A `go-version` input still overrides the pin.
 - **`docker-deploy`:** passes the build args `GO_IMAGE`, `ALPINE_IMAGE`, `DISTROLESS_IMAGE` and `GO_VERSION` (bare version, kept for existing Dockerfiles), and records the pins in the image labels `com.bluefunda.pins.*`.
 
 Dockerfiles consume the build args as described in [the Dockerfile standard](dockerfile.md).
