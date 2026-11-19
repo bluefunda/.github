@@ -10,6 +10,8 @@ This is the `bluefunda/.github` repo — org-wide CI/CD configuration for all bl
 | `.github/PULL_REQUEST_TEMPLATE.md` | Org-wide PR template |
 | `.claude/commands/go-review.md` | `/go-review` slash command — idiomatic Go audit prompt |
 | `.claude/commands/ts-review.md` | `/ts-review` slash command — idiomatic TypeScript audit prompt |
+| `.github/actions/versions/` | Org version pins (Go toolchain, base images) and the composite action that exposes them |
+| `docs/versions.md` | How the version pins work and how to upgrade them |
 | `docs/dockerfile.md` | Dockerfile standard: non-root runtime, pinned bases, `GH_PAT` handling, gitops runtime defaults |
 | `CODEOWNERS` | `* @bluefunda/maintainers` |
 | `profile/README.md` | Public org profile on github.com/bluefunda |
@@ -27,7 +29,7 @@ Release → docker-deploy → gitops (Komodo) + github-release-notes
 ## Available workflows (consumed via `uses: bluefunda/.github/.github/workflows/<name>.yml@main`)
 
 - `go-review.yml` — posts advisory Claude Code review as PR comment; requires `ANTHROPIC_API_KEY`
-- `go-ci.yml` — build, test, lint; use `goprivate: github.com/bluefunda/*` for repos with private deps
+- `go-ci.yml` — build, test, lint with the pinned Go version; use `goprivate: github.com/bluefunda/*` for repos with private deps
 - `ts-review.yml` — posts advisory TypeScript review as PR comment; requires `ANTHROPIC_API_KEY`
 - `ts-ci.yml` — typecheck, test, build, lint for TypeScript/Node.js repos
 - `release-please.yml` — version bump, CHANGELOG, release PR; outputs `release_created` + `tag_name`
@@ -41,5 +43,6 @@ Release → docker-deploy → gitops (Komodo) + github-release-notes
 - Do not duplicate workflow logic across repos — add it here and reference via `workflow_call`
 - The `/go-review` prompt in `.claude/commands/go-review.md` is fetched at runtime by `go-review.yml` — keep it up to date here
 - The `/ts-review` prompt in `.claude/commands/ts-review.md` is fetched at runtime by `ts-review.yml` — keep it up to date here
+- Go and base image versions are pinned once in `.github/actions/versions/Dockerfile` ([docs/versions.md](docs/versions.md)); never hard-code them in a workflow or repo
 - Dockerfiles must follow [docs/dockerfile.md](docs/dockerfile.md) — non-root runtime user, pinned base images, `GH_PAT` only via `.netrc` in the builder stage
 - `profile/README.md` is public-facing; keep it product-focused, not engineering-internal

@@ -22,11 +22,18 @@ on:
         required: false
         type: string
         default: ''
-      go-version-file:
-        description: Path to go.mod or go.work for version detection
+      go-version:
+        description: >
+          Go version override. Leave empty to use the org pin
+          (.github/actions/versions/Dockerfile in bluefunda/.github).
         required: false
         type: string
-        default: 'go.mod'
+        default: ''
+      go-version-file:
+        description: Deprecated — ignored; the org pin (or go-version) is used.
+        required: false
+        type: string
+        default: ''
       test-command:
         description: Test command to run before release (empty to skip)
         required: false
@@ -40,6 +47,7 @@ on:
 
 env:
   GOPRIVATE: github.com/bluefunda/*
+  GOTOOLCHAIN: local
 
 jobs:
   goreleaser:
@@ -54,9 +62,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Resolve org version pins
+        id: pins
+        uses: bluefunda/.github/.github/actions/versions@main
+
       - uses: actions/setup-go@v6
         with:
-          go-version-file: ${{ inputs.go-version-file }}
+          go-version: ${{ inputs.go-version || steps.pins.outputs.go-version }}
 
       - name: Run tests
         if: inputs.test-command != ''

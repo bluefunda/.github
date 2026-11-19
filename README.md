@@ -63,6 +63,8 @@ Copy the workflow stubs from [`template-go`](https://github.com/bluefunda/templa
 
 Images must follow the [Dockerfile standard](docs/dockerfile.md) — `docker-deploy.yml` checks it on every release.
 
+Go and base image versions come from the [org version pins](docs/versions.md) — bump them in one file here and every repo's next build picks them up.
+
 Required org secrets (already configured for private repos):
 
 | Secret | Used by |

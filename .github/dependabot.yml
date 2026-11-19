@@ -1,10 +1,19 @@
 version: 2
 updates:
-  # This repo only holds reusable workflows, so GitHub Actions is the only
-  # ecosystem to track. Dependabot does not inherit this file org-wide: each
-  # repo keeps its own .github/dependabot.yml for gomod/docker/etc.
+  # This repo holds reusable workflows and the org version pins, so it tracks
+  # GitHub Actions and the pin file only. Dependabot does not inherit this file
+  # org-wide: each repo keeps its own .github/dependabot.yml for gomod/etc.
   - package-ecosystem: github-actions
     directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - infrastructure
+
+  # Org-wide Go toolchain and base image pins (see docs/versions.md).
+  - package-ecosystem: docker
+    directory: /.github/actions/versions
     schedule:
       interval: weekly
       day: monday

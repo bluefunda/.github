@@ -9,21 +9,22 @@ The workflow checks the first two rules on every release (see [Enforcement](#enf
    - Static binary that needs nothing else at runtime → `gcr.io/distroless/static:nonroot` (uid 65532).
    - Anything that needs a shell, CA bundle tweaks, `git`, etc. → Alpine with `appuser`, uid/gid 1000, and `USER appuser`.
    - The final `USER` must not be empty, `root` or `0`. Do not drop privileges in an entrypoint script (`su-exec`, `gosu`): the image metadata then still says root and the check fails.
-2. **Base images are pinned to a version**, never `:latest` or untagged: `alpine:3.24`, `golang:${GO_VERSION}-alpine`, `gcr.io/distroless/static:nonroot` (distroless publishes no version tags, so `:nonroot` is the pin).
+2. **Base images come from the org pins.** `FROM` lines use the `GO_IMAGE`, `ALPINE_IMAGE` and `DISTROLESS_IMAGE` build args, which `docker-deploy.yml` sets from [the org version pins](versions.md). Their `ARG` defaults only matter for local builds and must still be pinned to a version, never `:latest` or untagged.
 3. **`GH_PAT` is used only in the builder stage, through `.netrc`.** Write `.netrc` and delete it in the same `RUN`, so the token is in no layer. `url.insteadOf` with the token in the URL no longer works: libcurl 8.23 drops URL credentials across GitHub's redirect.
 4. **No secrets in image layers.** This includes builder stages: `docker-deploy.yml` exports every layer to the GHA cache (`mode=max`).
 5. **Writable state lives under one documented directory** (`/data` by default), mounted as a volume and owned by the runtime user. Everything else is read-only (see [Runtime defaults](#runtime-defaults-gitops-stacks)).
 
 ## Reference Dockerfiles
 
-`GO_VERSION` is injected by `docker-deploy.yml` from `go.mod`; the default only matters for local builds.
+The `ARG` defaults only matter for local `docker build`; in CI, `docker-deploy.yml` overrides them with the org pins (tag and digest).
 
 ### Static binary → distroless
 
 ```dockerfile
-ARG GO_VERSION=1.25
+ARG GO_IMAGE=golang:1.27.4-alpine
+ARG DISTROLESS_IMAGE=gcr.io/distroless/static:nonroot
 
-FROM golang:${GO_VERSION}-alpine AS builder
+FROM ${GO_IMAGE} AS builder
 ARG GH_PAT
 ENV GOPRIVATE=github.com/bluefunda/* CGO_ENABLED=0
 RUN apk add --no-cache git
@@ -37,7 +38,7 @@ RUN if [ -n "$GH_PAT" ]; then \
 COPY . .
 RUN go build -trimpath -ldflags='-s -w' -o /out/app ./cmd/app
 
-FROM gcr.io/distroless/static:nonroot
+FROM ${DISTROLESS_IMAGE}
 COPY --from=builder /out/app /app
 USER nonroot:nonroot
 ENTRYPOINT ["/app"]
@@ -46,9 +47,12 @@ ENTRYPOINT ["/app"]
 ### Needs a userland → Alpine + `appuser`
 
 ```dockerfile
+ARG GO_IMAGE=golang:1.27.4-alpine
+ARG ALPINE_IMAGE=alpine:3.24
+
 # Builder stage as above.
 
-FROM alpine:3.24
+FROM ${ALPINE_IMAGE}
 RUN apk add --no-cache ca-certificates git \
  && addgroup -g 1000 appuser \
  && adduser -D -u 1000 -G appuser appuser \
