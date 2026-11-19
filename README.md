@@ -6,7 +6,9 @@ Org-wide GitHub configuration: reusable workflows, PR templates, Claude Code com
 
 ## Pipeline Overview
 
-Every bluefunda Go repo follows this end-to-end flow:
+Every bluefunda Go repo should follow this end-to-end flow:
+
+> **Note:** most repos still call the duplicate copies of these workflows in `bluefunda/release-foundry`, which don't apply the version pins or the Dockerfile check. Consolidation is tracked in [#32](https://github.com/bluefunda/.github/issues/32).
 
 ```
 PR opened
@@ -63,7 +65,7 @@ Copy the workflow stubs from [`template-go`](https://github.com/bluefunda/templa
 
 Images must follow the [Dockerfile standard](docs/dockerfile.md) — `docker-deploy.yml` checks it on every release.
 
-Go and base image versions come from the [org version pins](docs/versions.md) — bump them in one file here and every repo's next build picks them up.
+Go and base image versions come from the [org version pins](docs/versions.md) — bump them in one file here and the next build of every repo using these workflows picks them up.
 
 Required org secrets (already configured for private repos):
 
