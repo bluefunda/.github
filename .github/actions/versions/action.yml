@@ -1,0 +1,55 @@
+name: Org version pins
+description: >
+  Exposes the org-wide Go toolchain and base image pins from the Dockerfile
+  next to this action. See docs/versions.md in bluefunda/.github.
+
+outputs:
+  go-version:
+    description: Go toolchain version (e.g. 1.27.4)
+    value: ${{ steps.pins.outputs.go-version }}
+  go-image:
+    description: Go builder image, tag and digest
+    value: ${{ steps.pins.outputs.go-image }}
+  alpine-image:
+    description: Alpine runtime image, tag and digest
+    value: ${{ steps.pins.outputs.alpine-image }}
+  distroless-image:
+    description: Distroless static nonroot runtime image, tag and digest
+    value: ${{ steps.pins.outputs.distroless-image }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read version pins
+      id: pins
+      shell: bash
+      run: |
+        set -euo pipefail
+        PINS="$GITHUB_ACTION_PATH/Dockerfile"
+
+        # "FROM <image> AS <name>" -> image for that stage name.
+        image() {
+          awk -v name="$1" 'toupper($1) == "FROM" && $4 == name { print $2 }' "$PINS"
+        }
+
+        GO_IMAGE=$(image go)
+        ALPINE_IMAGE=$(image alpine)
+        DISTROLESS_IMAGE=$(image distroless)
+        for v in GO_IMAGE ALPINE_IMAGE DISTROLESS_IMAGE; do
+          if [ -z "${!v}" ]; then
+            echo "::error::$v not found in $PINS"
+            exit 1
+          fi
+        done
+
+        # golang:1.27.4-alpine@sha256:... -> 1.27.4
+        GO_VERSION="${GO_IMAGE#golang:}"
+        GO_VERSION="${GO_VERSION%%[-@]*}"
+
+        {
+          echo "go-version=$GO_VERSION"
+          echo "go-image=$GO_IMAGE"
+          echo "alpine-image=$ALPINE_IMAGE"
+          echo "distroless-image=$DISTROLESS_IMAGE"
+        } >> "$GITHUB_OUTPUT"
+        echo "Go $GO_VERSION | $GO_IMAGE | $ALPINE_IMAGE | $DISTROLESS_IMAGE"
