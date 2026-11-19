@@ -166,7 +166,7 @@ jobs:
       # before anything is pushed. Its layers are reused by the multi-arch build below.
       - name: Build image for policy check
         if: inputs.dockerfile-policy != 'off'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ${{ inputs.context }}
           file: ${{ steps.dockerfile.outputs.path }}
@@ -204,7 +204,7 @@ jobs:
           esac
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ${{ inputs.context }}
           file: ${{ steps.dockerfile.outputs.path }}
