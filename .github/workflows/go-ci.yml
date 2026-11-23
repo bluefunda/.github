@@ -45,6 +45,11 @@ on:
         required: false
         type: boolean
         default: false
+      protoc-version:
+        description: protoc release to install when run-protobuf is set.
+        required: false
+        type: string
+        default: '29.3'
       runner:
         description: 'Runner label. Empty (default) picks by repository visibility: self-hosted for private repos, ubuntu-latest (GitHub-hosted) for public ones.'
         required: false
@@ -64,34 +69,20 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
     env:
       GOPRIVATE: ${{ inputs.goprivate }}
-      GOTOOLCHAIN: local
     steps:
-      - name: Configure Git for private modules
-        if: inputs.goprivate != ''
-        working-directory: '.'
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          if [ -n "$GH_PAT" ]; then
-            git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
-          fi
-
       - uses: actions/checkout@v4
-
-      - name: Resolve org version pins
-        id: pins
-        uses: bluefunda/.github/.github/actions/versions@main
-
-      - uses: actions/setup-go@v6
         with:
-          go-version: ${{ inputs.go-version || steps.pins.outputs.go-version }}
+          persist-credentials: false
 
-      - name: Install protoc tools
-        if: inputs.run-protobuf
-        run: |
-          sudo apt-get update -q && sudo apt-get install -y protobuf-compiler
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+      - uses: bluefunda/.github/.github/actions/setup-go@main
+        with:
+          go-version: ${{ inputs.go-version }}
+          gh-pat: ${{ secrets.GH_PAT }}
+          goprivate: ${{ inputs.goprivate }}
+          working-directory: ${{ inputs.working-directory }}
+          cache: ${{ !contains(inputs.runner, 'self-hosted') }}
+          protobuf: ${{ inputs.run-protobuf }}
+          protoc-version: ${{ inputs.protoc-version }}
 
       - name: Generate proto files
         if: inputs.run-protobuf
@@ -104,7 +95,10 @@ jobs:
         if: inputs.run-codecov
         uses: codecov/codecov-action@v7
         with:
-          files: ./coverage.txt
+          files: ${{ inputs.working-directory }}/coverage.txt
+          # Best effort: a Codecov outage or TLS failure on a self-hosted
+          # runner must not fail CI for every consumer.
+          fail_ci_if_error: false
 
   build:
     name: Build
@@ -114,34 +108,20 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
     env:
       GOPRIVATE: ${{ inputs.goprivate }}
-      GOTOOLCHAIN: local
     steps:
-      - name: Configure Git for private modules
-        if: inputs.goprivate != ''
-        working-directory: '.'
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          if [ -n "$GH_PAT" ]; then
-            git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
-          fi
-
       - uses: actions/checkout@v4
-
-      - name: Resolve org version pins
-        id: pins
-        uses: bluefunda/.github/.github/actions/versions@main
-
-      - uses: actions/setup-go@v6
         with:
-          go-version: ${{ inputs.go-version || steps.pins.outputs.go-version }}
+          persist-credentials: false
 
-      - name: Install protoc tools
-        if: inputs.run-protobuf
-        run: |
-          sudo apt-get update -q && sudo apt-get install -y protobuf-compiler
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+      - uses: bluefunda/.github/.github/actions/setup-go@main
+        with:
+          go-version: ${{ inputs.go-version }}
+          gh-pat: ${{ secrets.GH_PAT }}
+          goprivate: ${{ inputs.goprivate }}
+          working-directory: ${{ inputs.working-directory }}
+          cache: ${{ !contains(inputs.runner, 'self-hosted') }}
+          protobuf: ${{ inputs.run-protobuf }}
+          protoc-version: ${{ inputs.protoc-version }}
 
       - name: Generate proto files
         if: inputs.run-protobuf
@@ -158,34 +138,20 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
     env:
       GOPRIVATE: ${{ inputs.goprivate }}
-      GOTOOLCHAIN: local
     steps:
-      - name: Configure Git for private modules
-        if: inputs.goprivate != ''
-        working-directory: '.'
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          if [ -n "$GH_PAT" ]; then
-            git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
-          fi
-
       - uses: actions/checkout@v4
-
-      - name: Resolve org version pins
-        id: pins
-        uses: bluefunda/.github/.github/actions/versions@main
-
-      - uses: actions/setup-go@v6
         with:
-          go-version: ${{ inputs.go-version || steps.pins.outputs.go-version }}
+          persist-credentials: false
 
-      - name: Install protoc tools
-        if: inputs.run-protobuf
-        run: |
-          sudo apt-get update -q && sudo apt-get install -y protobuf-compiler
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+      - uses: bluefunda/.github/.github/actions/setup-go@main
+        with:
+          go-version: ${{ inputs.go-version }}
+          gh-pat: ${{ secrets.GH_PAT }}
+          goprivate: ${{ inputs.goprivate }}
+          working-directory: ${{ inputs.working-directory }}
+          cache: ${{ !contains(inputs.runner, 'self-hosted') }}
+          protobuf: ${{ inputs.run-protobuf }}
+          protoc-version: ${{ inputs.protoc-version }}
 
       - name: Generate proto files
         if: inputs.run-protobuf

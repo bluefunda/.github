@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       tag:
-        description: Release tag to build
+        description: Release tag to build (e.g. v1.2.3)
         required: true
         type: string
       goreleaser-version:
@@ -34,6 +34,23 @@ on:
         required: false
         type: string
         default: ''
+      goprivate:
+        description: >
+          GOPRIVATE value for private module access.
+          Set to '' for public/OSS repos with no private dependencies.
+        required: false
+        type: string
+        default: 'github.com/bluefunda/*'
+      goreleaser-runner:
+        description: >
+          Runner for the GoReleaser job. Use macos-latest to sign and notarize
+          darwin binaries; keep ubuntu-latest if .goreleaser.yml builds Docker
+          images (macOS runners have no Docker). Empty (default) picks by
+          repository visibility: self-hosted for private repos, ubuntu-latest
+          (GitHub-hosted) for public ones.
+        required: false
+        type: string
+        default: ''
       test-command:
         description: Test command to run before release (empty to skip)
         required: false
@@ -41,44 +58,90 @@ on:
         default: 'go test -race -count=1 ./...'
     secrets:
       GH_PAT:
-        required: true
+        description: GitHub PAT for private module access. Only needed when goprivate is set.
+        required: false
       HOMEBREW_TAP_TOKEN:
+        description: GitHub PAT with write access to the Homebrew tap repo.
+        required: false
+      MACOS_CERTIFICATE:
+        description: Base64-encoded Developer ID Application certificate (.p12).
+        required: false
+      MACOS_CERTIFICATE_PWD:
+        description: Password for the macOS certificate.
+        required: false
+      NOTARIZATION_ISSUER_ID:
+        description: App Store Connect API issuer ID for notarization.
+        required: false
+      NOTARIZATION_KEY_ID:
+        description: App Store Connect API key ID for notarization.
+        required: false
+      NOTARIZATION_KEY:
+        description: App Store Connect API private key (.p8 content) for notarization.
         required: false
 
-env:
-  GOPRIVATE: github.com/bluefunda/*
-  GOTOOLCHAIN: local
-
 jobs:
-  goreleaser:
+  test:
+    name: Test
+    if: inputs.test-command != ''
     runs-on: ${{ github.event.repository.private && 'self-hosted' || 'ubuntu-latest' }}
+    env:
+      GOPRIVATE: ${{ inputs.goprivate }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - uses: bluefunda/.github/.github/actions/setup-go@main
+        with:
+          go-version: ${{ inputs.go-version }}
+          gh-pat: ${{ secrets.GH_PAT }}
+          goprivate: ${{ inputs.goprivate }}
+
+      - run: ${{ inputs.test-command }}
+
+  goreleaser:
+    needs: test
+    # Run when tests passed or were skipped (empty test-command).
+    if: ${{ !failure() && !cancelled() }}
+    runs-on: ${{ inputs.goreleaser-runner || (github.event.repository.private && 'self-hosted') || 'ubuntu-latest' }}
     permissions:
       contents: write
+      id-token: write # OIDC token for cosign keyless (Sigstore/Fulcio) signing
+    env:
+      GOPRIVATE: ${{ inputs.goprivate }}
     steps:
-      - name: Configure Git for private modules
-        run: git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
 
-      - name: Resolve org version pins
-        id: pins
-        uses: bluefunda/.github/.github/actions/versions@main
-
-      - uses: actions/setup-go@v6
+      - uses: bluefunda/.github/.github/actions/setup-go@main
         with:
-          go-version: ${{ inputs.go-version || steps.pins.outputs.go-version }}
+          go-version: ${{ inputs.go-version }}
+          gh-pat: ${{ secrets.GH_PAT }}
+          goprivate: ${{ inputs.goprivate }}
 
-      - name: Run tests
-        if: inputs.test-command != ''
-        run: ${{ inputs.test-command }}
+      # Available for a repo's .goreleaser.yml to opt in to the sboms and signs
+      # pipes; GoReleaser only invokes the tools its configured pipes name.
+      - name: Install syft (GoReleaser SBOM pipe)
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Install cosign (GoReleaser signing pipe)
+        uses: sigstore/cosign-installer@v3
+        with:
+          # Last v2.x: cosign v3 dropped the --output-signature/--output-certificate
+          # flags GoReleaser's signs pipe passes.
+          cosign-release: "v2.6.4"
 
       - name: Resolve goreleaser config flag
         id: config
+        env:
+          CONFIG: ${{ inputs.goreleaser-config }}
         run: |
-          if [ -n "${{ inputs.goreleaser-config }}" ]; then
-            echo "flag=--config ${{ inputs.goreleaser-config }}" >> "$GITHUB_OUTPUT"
+          if [ -n "$CONFIG" ]; then
+            echo "flag=--config $CONFIG" >> "$GITHUB_OUTPUT"
           else
             echo "flag=" >> "$GITHUB_OUTPUT"
           fi
@@ -89,4 +152,11 @@ jobs:
           args: ${{ inputs.goreleaser-args }} ${{ steps.config.outputs.flag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Both names are in use across .goreleaser.yml files.
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          NOTARIZATION_ISSUER_ID: ${{ secrets.NOTARIZATION_ISSUER_ID }}
+          NOTARIZATION_KEY_ID: ${{ secrets.NOTARIZATION_KEY_ID }}
+          NOTARIZATION_KEY: ${{ secrets.NOTARIZATION_KEY }}

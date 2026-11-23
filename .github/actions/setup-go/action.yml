@@ -1,0 +1,132 @@
+name: Set up Go (org)
+description: >
+  Installs the org-pinned Go toolchain with GOTOOLCHAIN=local, configures
+  private module access and optionally protoc. Works on GitHub-hosted and
+  self-hosted runners (no sudo, no global git config).
+
+inputs:
+  go-version:
+    description: Go version override. Empty uses the org pin (docs/versions.md).
+    required: false
+    default: ''
+  gh-pat:
+    description: GitHub PAT for private module access. Only used when goprivate is set.
+    required: false
+    default: ''
+  goprivate:
+    description: GOPRIVATE value. Empty for repos without private module dependencies.
+    required: false
+    default: ''
+  working-directory:
+    description: Directory holding go.mod / go.sum (for the module cache key).
+    required: false
+    default: '.'
+  cache:
+    description: Enable the Go module/build cache. Disable on self-hosted runners.
+    required: false
+    default: 'true'
+  protobuf:
+    description: Install protoc and the Go protoc plugins.
+    required: false
+    default: 'false'
+  protoc-version:
+    description: protoc release to install when protobuf is 'true'.
+    required: false
+    default: '29.3'
+
+outputs:
+  go-version:
+    description: Go version installed
+    value: ${{ steps.setup.outputs.go-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Configure Git for private modules
+      if: inputs.goprivate != '' && inputs.gh-pat != ''
+      shell: bash
+      env:
+        GH_PAT: ${{ inputs.gh-pat }}
+      run: |
+        # Through the environment, not `git config --global`: on a shared
+        # self-hosted runner a global config would leave the token behind.
+        {
+          echo "GIT_CONFIG_COUNT=1"
+          echo "GIT_CONFIG_KEY_0=url.https://x-access-token:${GH_PAT}@github.com/.insteadOf"
+          echo "GIT_CONFIG_VALUE_0=https://github.com/"
+        } >> "$GITHUB_ENV"
+
+    - name: Resolve org version pins
+      id: pins
+      uses: bluefunda/.github/.github/actions/versions@main
+
+    # Before setup-go, which runs `go env` for its cache: with the default
+    # GOTOOLCHAIN=auto a newer go.mod would make Go download another toolchain.
+    - name: Pin the toolchain
+      shell: bash
+      run: echo "GOTOOLCHAIN=local" >> "$GITHUB_ENV"
+
+    # setup-go fails when cache-dependency-path matches nothing, and modules
+    # without dependencies (or go.work monorepos) have no go.sum at the root.
+    - name: Locate go.sum for the cache key
+      id: cache
+      shell: bash
+      env:
+        WD: ${{ inputs.working-directory }}
+        CACHE: ${{ inputs.cache }}
+      run: |
+        if [ "$CACHE" = true ] && [ -n "$(find "$WD" -name go.sum -not -path '*/vendor/*' -print -quit)" ]; then
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+          echo "path=${WD%/}/**/go.sum" >> "$GITHUB_OUTPUT"
+        else
+          echo "enabled=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Set up Go
+      id: setup
+      uses: actions/setup-go@v6
+      with:
+        go-version: ${{ inputs.go-version || steps.pins.outputs.go-version }}
+        cache: ${{ steps.cache.outputs.enabled }}
+        cache-dependency-path: ${{ steps.cache.outputs.path }}
+
+    - name: Install protoc
+      if: inputs.protobuf == 'true'
+      shell: bash
+      env:
+        PROTOC_VERSION: ${{ inputs.protoc-version }}
+      run: |
+        # Downloaded rather than apt-installed: self-hosted runners have no
+        # passwordless sudo.
+        if command -v protoc >/dev/null 2>&1; then
+          echo "protoc already present: $(protoc --version)"
+        else
+          # RUNNER_TEMP is per job; concurrent jobs on one self-hosted machine
+          # would race on a fixed /tmp path.
+          PROTOC_ZIP="$RUNNER_TEMP/protoc-${PROTOC_VERSION}.zip"
+          PROTOC_DIR="$RUNNER_TEMP/protoc-${PROTOC_VERSION}"
+          curl -fsSL -o "$PROTOC_ZIP" \
+            "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+          if ! head -c2 "$PROTOC_ZIP" | grep -q PK; then
+            echo "downloaded protoc archive is not a zip:" >&2
+            head -c200 "$PROTOC_ZIP" >&2
+            exit 1
+          fi
+          mkdir -p "$PROTOC_DIR"
+          if command -v unzip >/dev/null 2>&1; then
+            unzip -oq "$PROTOC_ZIP" -d "$PROTOC_DIR"
+          elif command -v python3 >/dev/null 2>&1; then
+            python3 -m zipfile -e "$PROTOC_ZIP" "$PROTOC_DIR"
+            chmod +x "$PROTOC_DIR/bin/protoc" # zipfile drops the exec bit
+          else
+            echo "need unzip or python3 to extract protoc" >&2
+            exit 1
+          fi
+          rm -f "$PROTOC_ZIP"
+          echo "$PROTOC_DIR/bin" >> "$GITHUB_PATH"
+          "$PROTOC_DIR/bin/protoc" --version
+        fi
+        go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+        go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+        # protoc finds its plugins on PATH; GOPATH/bin isn't always on it.
+        echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
