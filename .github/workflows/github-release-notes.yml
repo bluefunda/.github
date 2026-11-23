@@ -24,7 +24,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout release-foundry
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: bluefunda/release-foundry
           ref: main

@@ -76,7 +76,7 @@ jobs:
             git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Resolve org version pins
         id: pins
@@ -126,7 +126,7 @@ jobs:
             git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Resolve org version pins
         id: pins
@@ -170,7 +170,7 @@ jobs:
             git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Resolve org version pins
         id: pins
