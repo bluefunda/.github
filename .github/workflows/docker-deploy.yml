@@ -99,7 +99,7 @@ jobs:
 
       - name: Set up QEMU
         if: contains(inputs.platforms, 'arm64') || contains(inputs.platforms, 'arm/v')
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           image: tonistiigi/binfmt:qemu-v8.1.5
 
