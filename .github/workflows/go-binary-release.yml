@@ -45,10 +45,12 @@ on:
         description: >
           Runner for the GoReleaser job. Use macos-latest to sign and notarize
           darwin binaries; keep ubuntu-latest if .goreleaser.yml builds Docker
-          images (macOS runners have no Docker).
+          images (macOS runners have no Docker). Empty (default) picks by
+          repository visibility: self-hosted for private repos, ubuntu-latest
+          (GitHub-hosted) for public ones.
         required: false
         type: string
-        default: 'ubuntu-latest'
+        default: ''
       test-command:
         description: Test command to run before release (empty to skip)
         required: false
@@ -81,7 +83,7 @@ jobs:
   test:
     name: Test
     if: inputs.test-command != ''
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.repository.private && 'self-hosted' || 'ubuntu-latest' }}
     env:
       GOPRIVATE: ${{ inputs.goprivate }}
     steps:
@@ -102,7 +104,7 @@ jobs:
     needs: test
     # Run when tests passed or were skipped (empty test-command).
     if: ${{ !failure() && !cancelled() }}
-    runs-on: ${{ inputs.goreleaser-runner }}
+    runs-on: ${{ inputs.goreleaser-runner || (github.event.repository.private && 'self-hosted') || 'ubuntu-latest' }}
     permissions:
       contents: write
       id-token: write # OIDC token for cosign keyless (Sigstore/Fulcio) signing
