@@ -46,10 +46,10 @@ on:
         type: string
         default: linux/amd64,linux/arm64
       runner:
-        description: Runner label. Defaults to ubuntu-latest.
+        description: 'Runner label. Empty (default) picks by repository visibility: self-hosted for private repos, ubuntu-latest (GitHub-hosted) for public ones.'
         required: false
         type: string
-        default: ubuntu-latest
+        default: ''
       dockerfile-policy:
         description: >
           Dockerfile standard check (docs/dockerfile.md in bluefunda/.github):
@@ -64,7 +64,7 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: ${{ inputs.runner }}
+    runs-on: ${{ inputs.runner || (github.event.repository.private && 'self-hosted') || 'ubuntu-latest' }}
     permissions:
       contents: read
       packages: write

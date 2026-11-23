@@ -11,7 +11,7 @@ on:
 
 jobs:
   pr-title:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.repository.private && 'self-hosted' || 'ubuntu-latest' }}
     permissions:
       pull-requests: read
     steps:
