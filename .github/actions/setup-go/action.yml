@@ -84,7 +84,7 @@ runs:
 
     - name: Set up Go
       id: setup
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         go-version: ${{ inputs.go-version || steps.pins.outputs.go-version }}
         cache: ${{ steps.cache.outputs.enabled }}
